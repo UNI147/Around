@@ -1,0 +1,17 @@
+object Form1: TForm1
+  Left = 0
+  Height = 0
+  Top = 0
+  Width = 0
+  BorderStyle = bsNone
+  Caption = 'Around'
+  Color = clBlack
+  KeyPreview = True
+  LCLVersion = '4.4.0.0'
+  WindowState = wsFullScreen
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
+  OnKeyUp = FormKeyUp
+  OnPaint = FormPaint
+end
