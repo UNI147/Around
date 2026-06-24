@@ -10,12 +10,9 @@ uses
   athreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, Unit1
-  { you can add units after this };
+  Forms, Unit1, uGame, uInput, uRenderer, uPlayer, uWorld;
 
 {$R *.res}
-
-{$OUTPUT Around.exe}
 
 begin
   RequireDerivedFormResource:=True;
