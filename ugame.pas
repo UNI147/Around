@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Graphics, ExtCtrls,
-  uWorld, uPlayer, uRenderer, uInput;
+  uWorld, uPlayer, uRenderer, uInput, uConfig;
 
 type
   TGame = class
@@ -36,12 +36,14 @@ constructor TGame.Create(Owner: TComponent; OnRender: TNotifyEvent);
 begin
   FWorld := TWorld.Create;
   FPlayer := TPlayer.Create;
+  // Устанавливаем начальную позицию из конфига
+  FPlayer.SetPosition(Config.StartX, Config.StartY, Config.StartZ);
   FRenderer := TRenderer.Create;
   FInput := TInput.Create;
   FOnRender := OnRender;
 
   FTimer := TTimer.Create(Owner);
-  FTimer.Interval := 30;
+  FTimer.Interval := Config.TimerInterval;
   FTimer.OnTimer := @TimerTick;
   FTimer.Enabled := True;
 end;
@@ -58,10 +60,8 @@ begin
 end;
 
 procedure TGame.TimerTick(Sender: TObject);
-const
-  DT = 0.03;
 begin
-  Update(DT);
+  Update(Config.DeltaTime);
   if Assigned(FOnRender) then FOnRender(Self);
 end;
 
@@ -74,7 +74,6 @@ begin
   if FInput.Right then mx := 1;
   if FInput.Up then mz := -1;
   if FInput.Down then mz := 1;
-
   FPlayer.Update(dt, mx, mz, FInput.Jump);
 end;
 
@@ -83,18 +82,21 @@ var
   FullBmp: TBitmap;
   TopRect, SideRect, BottomRect: TRect;
   TopHeight: Integer;
+  vw, vh: Integer;
 begin
+  vw := Config.ViewWidth;
+  vh := Config.ViewHeight;
   FullBmp := TBitmap.Create;
   try
-    FullBmp.SetSize(VIEW_WIDTH, VIEW_HEIGHT);
+    FullBmp.SetSize(vw, vh);
     FullBmp.Canvas.Brush.Color := clBlack;
-    FullBmp.Canvas.FillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+    FullBmp.Canvas.FillRect(0, 0, vw, vh);
 
-    TopHeight := (VIEW_HEIGHT * 2) div 3;
+    TopHeight := (vh * 2) div 3;
 
-    TopRect := Rect(0, 0, VIEW_WIDTH div 2, TopHeight);
-    SideRect := Rect(VIEW_WIDTH div 2, 0, VIEW_WIDTH, TopHeight);
-    BottomRect := Rect(0, TopHeight, VIEW_WIDTH, VIEW_HEIGHT);
+    TopRect := Rect(0, 0, vw div 2, TopHeight);
+    SideRect := Rect(vw div 2, 0, vw, TopHeight);
+    BottomRect := Rect(0, TopHeight, vw, vh);
 
     FRenderer.DrawTopView(FullBmp, TopRect, FWorld, FPlayer);
     FRenderer.DrawSideView(FullBmp, SideRect, FWorld, FPlayer);
@@ -102,6 +104,9 @@ begin
     // Нижняя панель
     FullBmp.Canvas.Brush.Color := $202020;
     FullBmp.Canvas.FillRect(BottomRect);
+
+    // Шрифт из конфига
+    FullBmp.Canvas.Font.Name := ChangeFileExt(ExtractFileName(Config.FontFileName), '');
     FullBmp.Canvas.Font.Color := clWhite;
     FullBmp.Canvas.TextOut(BottomRect.Left + 10, BottomRect.Top + 10, 'Интерфейс');
     FullBmp.Canvas.Font.Color := clYellow;

@@ -41,6 +41,41 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
       </Unit>
+      <Unit>
+        <Filename Value="ugame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uGame"/>
+      </Unit>
+      <Unit>
+        <Filename Value="uinput.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uInput"/>
+      </Unit>
+      <Unit>
+        <Filename Value="urenderer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uRenderer"/>
+      </Unit>
+      <Unit>
+        <Filename Value="uplayer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uPlayer"/>
+      </Unit>
+      <Unit>
+        <Filename Value="uworld.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uWorld"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utypes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uTypes"/>
+      </Unit>
+      <Unit>
+        <Filename Value="uresources.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uResources"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

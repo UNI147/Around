@@ -5,7 +5,7 @@ unit uRenderer;
 interface
 
 uses
-  Graphics, Classes, SysUtils, Math, LCLType, uTypes, uWorld, uPlayer;
+  Graphics, Classes, SysUtils, LCLType, uTypes, uWorld, uPlayer;
 
 const
   VIEW_WIDTH = 320;

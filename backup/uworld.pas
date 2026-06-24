@@ -5,12 +5,7 @@ unit uWorld;
 interface
 
 uses
-  Classes, SysUtils, Graphics, LCLType, uTypes;
-
-const
-  WORLD_SIZE = 400;
-  NUM_TERRAIN_POINTS = 1500;
-  NUM_CLOUDS = 30;
+  Classes, SysUtils, Graphics, LCLType, uTypes, uResources;
 
 type
   TWorld = class
@@ -38,7 +33,7 @@ begin
   begin
     Terrain[i].X := (Random - 0.5) * WORLD_SIZE;
     Terrain[i].Z := (Random - 0.5) * WORLD_SIZE;
-    Terrain[i].Color := LCLType.RGB(0, 64 + Round(Random * 128), 0); // явное указание модуля
+    Terrain[i].Color := RGBToColor(0, 64 + Round(Random * 128), 0);
   end;
 
   SetLength(Clouds, NUM_CLOUDS);

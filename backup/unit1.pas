@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Dialogs, LCLType,
-  Graphics, ExtCtrls, uGame, uRenderer;
+  Graphics, ExtCtrls, Types, uGame, uRenderer, uResources, uConfig;
 
 type
   TForm1 = class(TForm)
@@ -31,8 +31,11 @@ implementation
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   DoubleBuffered := True;
-  ClientWidth := 320;
-  ClientHeight := 200;
+  // CHANGED: размеры берутся из конфига
+  ClientWidth := Config.ViewWidth;
+  ClientHeight := Config.ViewHeight;
+  // Загружаем шрифт из файла, указанного в конфиге
+  LoadCustomFont(ExtractFilePath(ParamStr(0)) + Config.FontFile);
   FGame := TGame.Create(Self, @OnGameRender);
 end;
 
@@ -43,7 +46,8 @@ end;
 
 procedure TForm1.FormShow(Sender: TObject);
 begin
-  WindowState := wsFullScreen;
+  if Config.FullScreen then
+    WindowState := wsFullScreen;
   Invalidate;
 end;
 
@@ -68,23 +72,22 @@ begin
 
   Bmp := TBitmap.Create;
   try
-    Bmp.SetSize(VIEW_WIDTH, VIEW_HEIGHT);
+    Bmp.SetSize(Config.ViewWidth, Config.ViewHeight);
     Bmp.Canvas.Brush.Color := clBlack;
-    Bmp.Canvas.FillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+    Bmp.Canvas.FillRect(0, 0, Config.ViewWidth, Config.ViewHeight);
 
-    // Явно указываем модуль Types для Rect
-    FGame.Render(Bmp, Types.Rect(0, 0, VIEW_WIDTH, VIEW_HEIGHT));
+    FGame.Render(Bmp, Rect(0, 0, Config.ViewWidth, Config.ViewHeight));
 
-    // Масштабирование с сохранением пропорций и пиксельным выводом
-    if ClientWidth / ClientHeight > VIEW_WIDTH / VIEW_HEIGHT then
+    // Масштабирование с сохранением пропорций
+    if ClientWidth / ClientHeight > Config.ViewWidth / Config.ViewHeight then
     begin
       H := ClientHeight;
-      W := Round(H * VIEW_WIDTH / VIEW_HEIGHT);
+      W := Round(H * Config.ViewWidth / Config.ViewHeight);
     end
     else
     begin
       W := ClientWidth;
-      H := Round(W * VIEW_HEIGHT / VIEW_WIDTH);
+      H := Round(W * Config.ViewHeight / Config.ViewWidth);
     end;
     DestRect.Left := (ClientWidth - W) div 2;
     DestRect.Top := (ClientHeight - H) div 2;
@@ -93,7 +96,6 @@ begin
 
     Canvas.Brush.Color := clBlack;
     Canvas.FillRect(ClientRect);
-    // SetStretchBltMode удалён – StretchDraw сам справляется
     Canvas.StretchDraw(DestRect, Bmp);
   finally
     Bmp.Free;

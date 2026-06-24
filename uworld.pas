@@ -5,12 +5,7 @@ unit uWorld;
 interface
 
 uses
-  Classes, SysUtils, Graphics, LCLType, uTypes;
-
-const
-  WORLD_SIZE = 400;
-  NUM_TERRAIN_POINTS = 1500;
-  NUM_CLOUDS = 30;
+  Classes, SysUtils, Graphics, LCLType, uTypes, uConfig;
 
 type
   TWorld = class
@@ -31,23 +26,24 @@ end;
 procedure TWorld.Generate;
 var
   i: Integer;
+  worldSize: Double;
 begin
   Randomize;
-  SetLength(Terrain, NUM_TERRAIN_POINTS);
-  for i := 0 to NUM_TERRAIN_POINTS - 1 do
+  worldSize := Config.WorldSize;
+  SetLength(Terrain, Config.TerrainPoints);
+  for i := 0 to Config.TerrainPoints - 1 do
   begin
-    Terrain[i].X := (Random - 0.5) * WORLD_SIZE;
-    Terrain[i].Z := (Random - 0.5) * WORLD_SIZE;
+    Terrain[i].X := (Random - 0.5) * worldSize;
+    Terrain[i].Z := (Random - 0.5) * worldSize;
     Terrain[i].Color := RGBToColor(0, 64 + Round(Random * 128), 0);
-
   end;
 
-  SetLength(Clouds, NUM_CLOUDS);
-  for i := 0 to NUM_CLOUDS - 1 do
+  SetLength(Clouds, Config.CloudCount);
+  for i := 0 to Config.CloudCount - 1 do
   begin
-    Clouds[i].X := (Random - 0.5) * WORLD_SIZE;
+    Clouds[i].X := (Random - 0.5) * worldSize;
     Clouds[i].Y := 60 + Random * 80;
-    Clouds[i].Z := (Random - 0.5) * WORLD_SIZE;
+    Clouds[i].Z := (Random - 0.5) * worldSize;
     Clouds[i].Width := 30 + Round(Random * 60);
     Clouds[i].Height := 10 + Round(Random * 20);
   end;
