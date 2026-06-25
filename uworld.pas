@@ -1,11 +1,8 @@
 unit uWorld;
-
 {$mode objfpc}{$H+}
-
 interface
-
 uses
-  Classes, SysUtils, Math, Contnrs, uTypes, uConfig, uNoise;
+  Classes, SysUtils, Contnrs, uTypes, uConfig, uNoise, Generics.Collections;
 
 const
   WATER_LEVEL = 24;
@@ -15,17 +12,21 @@ const
 type
   TChunk = class
     Blocks: array[0..CHUNK_SIZE_X-1, 0..CHUNK_SIZE_Y-1, 0..CHUNK_SIZE_Z-1] of TBlockID;
+    HeightMap: array[0..CHUNK_SIZE_X-1, 0..CHUNK_SIZE_Z-1] of Integer;
     ChunkX, ChunkZ: Integer;
     constructor Create(AX, AZ: Integer);
   end;
 
+  TChunkMap = specialize TDictionary<Int64, TChunk>;
+
   TWorld = class
   private
     FChunks: TObjectList;
-    function FindChunk(CX, CZ: Integer): TChunk;
+    FChunkMap: TChunkMap;
   public
     constructor Create;
     destructor Destroy; override;
+    function FindChunk(CX, CZ: Integer): TChunk; // ПЕРЕНЕСЕНО В PUBLIC
     function GetBlock(X, Y, Z: Integer): TBlockID;
     procedure SetBlock(X, Y, Z: Integer; Value: TBlockID);
     function IsBlockSolid(X, Y, Z: Integer): Boolean;
@@ -35,42 +36,40 @@ type
 
 implementation
 
-function GetChunkCoord(WorldCoord, ChunkSize: Integer): Integer; inline;
+function ChunkKey(CX, CZ: Integer): Int64; inline;
 begin
-  if WorldCoord >= 0 then
-    Result := WorldCoord div ChunkSize
-  else
-    Result := (WorldCoord - ChunkSize + 1) div ChunkSize;
+  Result := (Int64(CX) shl 32) or (CZ and $FFFFFFFF);
 end;
 
 constructor TChunk.Create(AX, AZ: Integer);
+var
+  lx, lz: Integer;
 begin
   ChunkX := AX;
   ChunkZ := AZ;
   FillChar(Blocks, SizeOf(Blocks), 0);
+  for lx := 0 to CHUNK_SIZE_X - 1 do
+    for lz := 0 to CHUNK_SIZE_Z - 1 do
+      HeightMap[lx, lz] := -1;
 end;
 
 constructor TWorld.Create;
 begin
   FChunks := TObjectList.Create(True);
+  FChunkMap := TChunkMap.Create;
 end;
 
 destructor TWorld.Destroy;
 begin
+  FChunkMap.Free;
   FChunks.Free;
   inherited;
 end;
 
 function TWorld.FindChunk(CX, CZ: Integer): TChunk;
-var
-  i: Integer;
 begin
-  for i := 0 to FChunks.Count - 1 do
-  begin
-    Result := TChunk(FChunks[i]);
-    if (Result.ChunkX = CX) and (Result.ChunkZ = CZ) then Exit;
-  end;
-  Result := nil;
+  if not FChunkMap.TryGetValue(ChunkKey(CX, CZ), Result) then
+    Result := nil;
 end;
 
 procedure TWorld.EnsureChunkExists(CX, CZ: Integer);
@@ -97,79 +96,61 @@ begin
     begin
       wx := CX * CHUNK_SIZE_X + lx;
       wz := CZ * CHUNK_SIZE_Z + lz;
-
-      // 1. Генерация биома и базовой высоты (2D fBm)
-      biomeNoise := FBm2D(wx * 0.005, wz * 0.005, 3, 0.5, 2.0); // Значения от -1 до 1
+      biomeNoise := FBm2D(wx * 0.005, wz * 0.005, 3, 0.5, 2.0);
       baseHeight := BASE_HEIGHT + biomeNoise * HEIGHT_VARIATION;
-      // Добавляем мелкие детали рельефа
       baseHeight := baseHeight + FBm2D(wx * 0.02, wz * 0.02, 4, 0.5, 2.0) * 6.0;
-
       for ly := 0 to CHUNK_SIZE_Y - 1 do
       begin
-        // 2. Вычисление 3D плотности
         density := baseHeight - ly;
-        // Добавляем 3D шум для создания неровностей, арок и нависаний
         density := density + FBm3D(wx * 0.03, ly * 0.03, wz * 0.03, 3, 0.5, 2.0) * 5.0;
-
-        // 3. Вырезание пещер (3D fBm)
         caveNoise := FBm3D(wx * 0.06, ly * 0.06, wz * 0.06, 2, 0.5, 2.0);
-        // Если шум превышает порог, мы вычитаем его из плотности, образуя полость
         if caveNoise > 0.4 then
           density := density - (caveNoise - 0.4) * 15.0;
-
-        // Бедрок на самом дне
         if ly < 2 then
           density := 10.0;
-
-        // 4. Определение типа блока
         if density > 0 then
         begin
           depth := Round(density);
           if ly <= WATER_LEVEL + 1 then
           begin
-            // Пляж у воды
-            if depth < 4 then b := Ord(btSand)
-            else b := Ord(btStone);
+            if depth < 4 then b := Ord(btSand) else b := Ord(btStone);
           end
           else if biomeNoise > 0.3 then
           begin
-            // Снежный биом (горы)
             if depth = 1 then b := Ord(btSnow)
             else if depth < 4 then b := Ord(btDirt)
             else b := Ord(btStone);
           end
           else if biomeNoise < -0.3 then
           begin
-            // Пустынный биом
-            if depth < 5 then b := Ord(btSand)
-            else b := Ord(btStone);
+            if depth < 5 then b := Ord(btSand) else b := Ord(btStone);
           end
           else
           begin
-            // Обычные равнины
             if depth = 1 then b := Ord(btGrass)
             else if depth < 4 then b := Ord(btDirt)
             else b := Ord(btStone);
           end;
           Chunk.Blocks[lx, ly, lz] := b;
+          if (b <> Ord(btAir)) and (Chunk.HeightMap[lx, lz] < ly) then
+            Chunk.HeightMap[lx, lz] := ly;
         end
         else
         begin
-          // Воздух или Вода
-          if ly <= WATER_LEVEL then
-            Chunk.Blocks[lx, ly, lz] := Ord(btWater)
-          else
-            Chunk.Blocks[lx, ly, lz] := Ord(btAir);
+          if ly <= WATER_LEVEL then Chunk.Blocks[lx, ly, lz] := Ord(btWater)
+          else Chunk.Blocks[lx, ly, lz] := Ord(btAir);
+          if (ly <= WATER_LEVEL) and (Chunk.HeightMap[lx, lz] < ly) then
+            Chunk.HeightMap[lx, lz] := ly;
         end;
       end;
     end;
   FChunks.Add(Chunk);
+  FChunkMap.Add(ChunkKey(CX, CZ), Chunk);
 end;
 
 function TWorld.GetBlock(X, Y, Z: Integer): TBlockID;
 var
-  CX, CZ: Integer;
-  lx, lz: Integer;
+  CX, CZ, lx, lz: Integer;
   Chunk: TChunk;
 begin
   if (Y < 0) or (Y >= CHUNK_SIZE_Y) then Exit(0);
@@ -191,8 +172,7 @@ end;
 
 procedure TWorld.SetBlock(X, Y, Z: Integer; Value: TBlockID);
 var
-  CX, CZ: Integer;
-  lx, lz: Integer;
+  CX, CZ, lx, lz: Integer;
   Chunk: TChunk;
 begin
   if (Y < 0) or (Y >= CHUNK_SIZE_Y) then Exit;
@@ -207,7 +187,11 @@ begin
     Chunk := FindChunk(CX, CZ);
   end;
   if Assigned(Chunk) then
+  begin
     Chunk.Blocks[lx, Y, lz] := Value;
+    if (Value <> Ord(btAir)) and (Chunk.HeightMap[lx, lz] < Y) then
+      Chunk.HeightMap[lx, lz] := Y;
+  end;
 end;
 
 function TWorld.IsBlockSolid(X, Y, Z: Integer): Boolean;
