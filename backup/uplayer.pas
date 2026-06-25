@@ -5,7 +5,7 @@ unit uPlayer;
 interface
 
 uses
-  Classes, SysUtils, uResources;
+  Classes, SysUtils, uConfig;
 
 type
   TPlayer = class
@@ -38,19 +38,19 @@ procedure TPlayer.Update(dt: Double; const MoveX, MoveZ: Double; Jump: Boolean);
 var
   newY: Double;
 begin
-  // Используем константы из uResources
-  FSpeedX := MoveX * PLAYER_MOVE_SPEED;
-  FSpeedZ := MoveZ * PLAYER_MOVE_SPEED;
+  // Используем параметры из конфига
+  FSpeedX := MoveX * Config.MoveSpeed;
+  FSpeedZ := MoveZ * Config.MoveSpeed;
   FPosX := FPosX + FSpeedX * dt;
   FPosZ := FPosZ + FSpeedZ * dt;
 
   if Jump and FOnGround then
   begin
-    FVelocityY := PLAYER_JUMP_SPEED;
+    FVelocityY := Config.JumpSpeed;
     FOnGround := False;
   end;
 
-  FVelocityY := FVelocityY - PLAYER_GRAVITY * dt;
+  FVelocityY := FVelocityY - Config.Gravity * dt;
   newY := FPosY + FVelocityY * dt;
   if newY < 0 then
   begin
@@ -60,10 +60,11 @@ begin
   end;
   FPosY := newY;
 
-  if FPosX < -WORLD_SIZE/2 then FPosX := -WORLD_SIZE/2;
-  if FPosX > WORLD_SIZE/2 then FPosX := WORLD_SIZE/2;
-  if FPosZ < -WORLD_SIZE/2 then FPosZ := -WORLD_SIZE/2;
-  if FPosZ > WORLD_SIZE/2 then FPosZ := WORLD_SIZE/2;
+  // Границы мира
+  if FPosX < -Config.WorldSize/2 then FPosX := -Config.WorldSize/2;
+  if FPosX > Config.WorldSize/2 then FPosX := Config.WorldSize/2;
+  if FPosZ < -Config.WorldSize/2 then FPosZ := -Config.WorldSize/2;
+  if FPosZ > Config.WorldSize/2 then FPosZ := Config.WorldSize/2;
 end;
 
 procedure TPlayer.SetPosition(X, Y, Z: Double);

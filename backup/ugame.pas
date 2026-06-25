@@ -5,8 +5,8 @@ unit uGame;
 interface
 
 uses
-  Classes, SysUtils, Graphics, ExtCtrls,
-  uWorld, uPlayer, uRenderer, uInput, uConfig;
+  Classes, SysUtils, Graphics, ExtCtrls, Math,
+  uWorld, uPlayer, uRenderer, uInput, uConfig, uTypes;
 
 type
   TGame = class
@@ -35,13 +35,12 @@ implementation
 constructor TGame.Create(Owner: TComponent; OnRender: TNotifyEvent);
 begin
   FWorld := TWorld.Create;
-  FPlayer := TPlayer.Create;
-  // Устанавливаем начальную позицию из конфига
-  FPlayer.SetPosition(Config.StartX, Config.StartY, Config.StartZ);
+  FPlayer := TPlayer.Create(FWorld);
+  FPlayer.SetPosition(0, 40, 0);
+
   FRenderer := TRenderer.Create;
   FInput := TInput.Create;
   FOnRender := OnRender;
-
   FTimer := TTimer.Create(Owner);
   FTimer.Interval := Config.TimerInterval;
   FTimer.OnTimer := @TimerTick;
@@ -78,45 +77,47 @@ begin
 end;
 
 procedure TGame.Render(Bitmap: TBitmap; const DestRect: TRect);
+const
+  LEFT_MARGIN = 1;
+  LINE_SPACING = 28;
 var
-  FullBmp: TBitmap;
   TopRect, SideRect, BottomRect: TRect;
   TopHeight: Integer;
   vw, vh: Integer;
+  LineY: Integer;
 begin
-  vw := Config.ViewWidth;
-  vh := Config.ViewHeight;
-  FullBmp := TBitmap.Create;
-  try
-    FullBmp.SetSize(vw, vh);
-    FullBmp.Canvas.Brush.Color := clBlack;
-    FullBmp.Canvas.FillRect(0, 0, vw, vh);
+  vw := DestRect.Right - DestRect.Left;
+  vh := DestRect.Bottom - DestRect.Top;
 
-    TopHeight := (vh * 2) div 3;
+  Bitmap.Canvas.Brush.Color := clBlack;
+  Bitmap.Canvas.FillRect(DestRect);
 
-    TopRect := Rect(0, 0, vw div 2, TopHeight);
-    SideRect := Rect(vw div 2, 0, vw, TopHeight);
-    BottomRect := Rect(0, TopHeight, vw, vh);
+  TopHeight := (vh * 2) div 3;
+  // Левая верхняя часть
+  TopRect := Rect(DestRect.Left, DestRect.Top, DestRect.Left + vw div 2, DestRect.Top + TopHeight);
+  // Правая верхняя часть
+  SideRect := Rect(DestRect.Left + vw div 2, DestRect.Top, DestRect.Right, DestRect.Top + TopHeight);
+  // Нижняя панель (UI)
+  BottomRect := Rect(DestRect.Left, DestRect.Top + TopHeight, DestRect.Right, DestRect.Bottom);
 
-    FRenderer.DrawTopView(FullBmp, TopRect, FWorld, FPlayer);
-    FRenderer.DrawSideView(FullBmp, SideRect, FWorld, FPlayer);
+  FRenderer.DrawTopView(Bitmap, TopRect, FWorld, FPlayer);
+  FRenderer.DrawSideView(Bitmap, SideRect, FWorld, FPlayer);
 
-    // Нижняя панель
-    FullBmp.Canvas.Brush.Color := $202020;
-    FullBmp.Canvas.FillRect(BottomRect);
+  // UI
+  Bitmap.Canvas.Brush.Color := $202020;
+  Bitmap.Canvas.FillRect(BottomRect);
 
-    // Шрифт из конфига
-    FullBmp.Canvas.Font.Name := Config.FontName; // CHANGED
-    FullBmp.Canvas.Font.Color := clWhite;
-    FullBmp.Canvas.TextOut(BottomRect.Left + 10, BottomRect.Top + 10, 'Интерфейс');
-    FullBmp.Canvas.Font.Color := clYellow;
-    FullBmp.Canvas.TextOut(BottomRect.Left + 10, BottomRect.Top + 30,
-      Format('Позиция: X=%.1f Y=%.1f Z=%.1f', [FPlayer.PosX, FPlayer.PosY, FPlayer.PosZ]));
+  Bitmap.Canvas.Font.Name := ChangeFileExt(ExtractFileName(Config.FontFileName), '');
+  Bitmap.Canvas.Font.Color := clWhite;
+  Bitmap.Canvas.Font.Size := 14;
 
-    Bitmap.Canvas.StretchDraw(DestRect, FullBmp);
-  finally
-    FullBmp.Free;
-  end;
+  LineY := BottomRect.Top + 10;
+  Bitmap.Canvas.TextOut(BottomRect.Left + LEFT_MARGIN, LineY, 'Прототип');
+
+  LineY := LineY + LINE_SPACING;
+  Bitmap.Canvas.Font.Color := clYellow;
+  Bitmap.Canvas.TextOut(BottomRect.Left + LEFT_MARGIN, LineY,
+    Format('Позиция: X=%.1f Y=%.1f Z=%.1f', [FPlayer.PosX, FPlayer.PosY, FPlayer.PosZ]));
 end;
 
 procedure TGame.HandleKeyDown(Key: Word);
