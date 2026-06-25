@@ -76,6 +76,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="uResources"/>
       </Unit>
+      <Unit>
+        <Filename Value="uconfig.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uConfig"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -78,7 +78,7 @@ end;
 
 procedure TGame.Render(Bitmap: TBitmap; const DestRect: TRect);
 const
-  LEFT_MARGIN = 1;
+  LEFT_MARGIN = 3;
   LINE_SPACING = 28;
 var
   TopRect, SideRect, BottomRect: TRect;

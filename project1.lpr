@@ -11,7 +11,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, Unit1, uGame, uInput, uRenderer, uPlayer, uWorld, uTypes, uResources,
-  uConfig;
+  uConfig, uNoise;
 
 {$R *.res}
 

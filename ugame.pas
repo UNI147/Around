@@ -33,14 +33,32 @@ type
 implementation
 
 constructor TGame.Create(Owner: TComponent; OnRender: TNotifyEvent);
+var
+  spawnY, wy: Integer;
 begin
   FWorld := TWorld.Create;
+
+  // Гарантируем, что стартовый чанк сгенерирован до спавна игрока
+  FWorld.EnsureChunkExists(0, 0);
+
+  // Поиск безопасной высоты для спавна
+  spawnY := CHUNK_SIZE_Y - 1;
+  for wy := CHUNK_SIZE_Y - 1 downto 0 do
+  begin
+    if FWorld.IsBlockSolid(0, wy, 0) then
+    begin
+      spawnY := wy + 2; // Спавнимся на 2 блока выше поверхности
+      Break;
+    end;
+  end;
+
   FPlayer := TPlayer.Create(FWorld);
-  FPlayer.SetPosition(0, 40, 0);
+  FPlayer.SetPosition(0, spawnY, 0);
 
   FRenderer := TRenderer.Create;
   FInput := TInput.Create;
   FOnRender := OnRender;
+
   FTimer := TTimer.Create(Owner);
   FTimer.Interval := Config.TimerInterval;
   FTimer.OnTimer := @TimerTick;
@@ -73,6 +91,7 @@ begin
   if FInput.Right then mx := 1;
   if FInput.Up then mz := -1;
   if FInput.Down then mz := 1;
+
   FPlayer.Update(dt, mx, mz, FInput.Jump);
 end;
 
@@ -93,11 +112,8 @@ begin
   Bitmap.Canvas.FillRect(DestRect);
 
   TopHeight := (vh * 2) div 3;
-  // Левая верхняя часть
   TopRect := Rect(DestRect.Left, DestRect.Top, DestRect.Left + vw div 2, DestRect.Top + TopHeight);
-  // Правая верхняя часть
   SideRect := Rect(DestRect.Left + vw div 2, DestRect.Top, DestRect.Right, DestRect.Top + TopHeight);
-  // Нижняя панель (UI)
   BottomRect := Rect(DestRect.Left, DestRect.Top + TopHeight, DestRect.Right, DestRect.Bottom);
 
   FRenderer.DrawTopView(Bitmap, TopRect, FWorld, FPlayer);
@@ -106,14 +122,12 @@ begin
   // UI
   Bitmap.Canvas.Brush.Color := $202020;
   Bitmap.Canvas.FillRect(BottomRect);
-
   Bitmap.Canvas.Font.Name := ChangeFileExt(ExtractFileName(Config.FontFileName), '');
   Bitmap.Canvas.Font.Color := clWhite;
   Bitmap.Canvas.Font.Size := 14;
 
   LineY := BottomRect.Top + 10;
   Bitmap.Canvas.TextOut(BottomRect.Left + LEFT_MARGIN, LineY, 'Прототип');
-
   LineY := LineY + LINE_SPACING;
   Bitmap.Canvas.Font.Color := clYellow;
   Bitmap.Canvas.TextOut(BottomRect.Left + LEFT_MARGIN, LineY,
