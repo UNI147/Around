@@ -10,7 +10,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
         <CursorPos X="18" Y="14"/>
-        <UsageCount Value="37"/>
+        <UsageCount Value="59"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -22,17 +22,18 @@
         <EditorIndex Value="2"/>
         <TopLine Value="26"/>
         <CursorPos X="70" Y="38"/>
-        <UsageCount Value="37"/>
+        <UsageCount Value="59"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="ugame.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uGame"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="99"/>
-        <CursorPos Y="101"/>
-        <UsageCount Value="33"/>
+        <TopLine Value="89"/>
+        <CursorPos X="55" Y="104"/>
+        <UsageCount Value="55"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -41,7 +42,7 @@
         <UnitName Value="uInput"/>
         <EditorIndex Value="4"/>
         <CursorPos X="12"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="55"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -49,9 +50,9 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="uRenderer"/>
         <EditorIndex Value="5"/>
-        <TopLine Value="146"/>
-        <CursorPos X="5" Y="168"/>
-        <UsageCount Value="33"/>
+        <TopLine Value="153"/>
+        <CursorPos X="5" Y="175"/>
+        <UsageCount Value="55"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -59,20 +60,19 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="uPlayer"/>
         <EditorIndex Value="6"/>
-        <TopLine Value="107"/>
-        <CursorPos X="5" Y="129"/>
-        <UsageCount Value="33"/>
+        <TopLine Value="10"/>
+        <CursorPos X="78" Y="78"/>
+        <UsageCount Value="55"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="uworld.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uWorld"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="7"/>
         <TopLine Value="223"/>
         <CursorPos X="61" Y="234"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="55"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -81,7 +81,7 @@
         <UnitName Value="uTypes"/>
         <EditorIndex Value="8"/>
         <CursorPos Y="12"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="55"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -90,7 +90,7 @@
         <UnitName Value="uResources"/>
         <EditorIndex Value="9"/>
         <CursorPos X="12" Y="7"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="52"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -100,7 +100,7 @@
         <EditorIndex Value="10"/>
         <TopLine Value="88"/>
         <CursorPos X="63" Y="103"/>
-        <UsageCount Value="29"/>
+        <UsageCount Value="51"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -110,13 +110,13 @@
         <EditorIndex Value="11"/>
         <TopLine Value="145"/>
         <CursorPos X="5" Y="168"/>
-        <UsageCount Value="27"/>
+        <UsageCount Value="49"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="unit1.lfm"/>
         <CursorPos X="20" Y="13"/>
-        <UsageCount Value="18"/>
+        <UsageCount Value="29"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="LFM"/>
       </Unit>
@@ -129,44 +129,16 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="402"/>
         <CursorPos X="5" Y="425"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit>
       <Unit>
         <Filename Value="C:\techdemo2\unit1.lfm"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="6"/>
         <DefaultSyntaxHighlighter Value="LFM"/>
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="utypes.pas"/>
-        <Caret Line="22" Column="5"/>
-      </Position>
-      <Position>
-        <Filename Value="uworld.pas"/>
-        <Caret Line="7" Column="12"/>
-      </Position>
-      <Position>
-        <Filename Value="uplayer.pas"/>
-        <Caret Line="6" Column="12"/>
-      </Position>
-      <Position>
-        <Filename Value="urenderer.pas"/>
-        <Caret Line="5" Column="19"/>
-      </Position>
-      <Position>
-        <Filename Value="ugame.pas"/>
-        <Caret Line="109" TopLine="103"/>
-      </Position>
-      <Position>
-        <Filename Value="ugame.pas"/>
-        <Caret Line="124" Column="7" TopLine="102"/>
-      </Position>
-      <Position>
-        <Filename Value="ugame.pas"/>
-        <Caret Line="111" Column="3" TopLine="105"/>
-      </Position>
       <Position>
         <Filename Value="ugame.pas"/>
         <Caret Line="120" Column="5" TopLine="79"/>
@@ -258,6 +230,34 @@
       <Position>
         <Filename Value="urenderer.pas"/>
         <Caret Line="168" Column="5" TopLine="146"/>
+      </Position>
+      <Position>
+        <Filename Value="uplayer.pas"/>
+        <Caret Line="129" Column="5" TopLine="107"/>
+      </Position>
+      <Position>
+        <Filename Value="urenderer.pas"/>
+        <Caret Line="168" Column="5" TopLine="146"/>
+      </Position>
+      <Position>
+        <Filename Value="urenderer.pas"/>
+        <Caret Line="53" TopLine="27"/>
+      </Position>
+      <Position>
+        <Filename Value="urenderer.pas"/>
+        <Caret Line="121" Column="21" TopLine="110"/>
+      </Position>
+      <Position>
+        <Filename Value="urenderer.pas"/>
+        <Caret Line="53" TopLine="51"/>
+      </Position>
+      <Position>
+        <Filename Value="urenderer.pas"/>
+        <Caret Line="63" Column="21" TopLine="60"/>
+      </Position>
+      <Position>
+        <Filename Value="urenderer.pas"/>
+        <Caret Line="154" Column="5" TopLine="148"/>
       </Position>
     </JumpHistory>
     <RunParams>

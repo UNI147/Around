@@ -98,6 +98,11 @@ SideRect := Rect(DestRect.Left + vw div 2, DestRect.Top, DestRect.Right, DestRec
 BottomRect := Rect(DestRect.Left, DestRect.Top + TopHeight, DestRect.Right, DestRect.Bottom);
 FRenderer.DrawTopView(Bitmap, TopRect, FWorld, FPlayer);
 FRenderer.DrawSideView(Bitmap, SideRect, FWorld, FPlayer);
+FRenderer.DrawTopView(Bitmap, TopRect, FWorld, FPlayer);
+FRenderer.DrawSideView(Bitmap, SideRect, FWorld, FPlayer);
+
+FRenderer.DrawClouds(Bitmap, TopRect, FPlayer, False);  // Облака сверху
+FRenderer.DrawClouds(Bitmap, SideRect, FPlayer, True);
 // UI
 Bitmap.Canvas.Brush.Color := $202020; Bitmap.Canvas.FillRect(BottomRect);
 Bitmap.Canvas.Font.Name := ChangeFileExt(ExtractFileName(Config.FontFileName), '');

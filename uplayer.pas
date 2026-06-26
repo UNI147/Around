@@ -43,13 +43,15 @@ var
   bx, by, bz: Integer;
 const
   EPS = 0.001;
+  P_WIDTH = 0.3;
+  P_HEIGHT = 1.8;
 begin
-  minX := Floor(X - 0.3);
-  maxX := Floor(X + 0.3 - EPS); // Исключаем микро-пересечения на границах
-  minY := Floor(Y);
-  maxY := Floor(Y + 1.8 - EPS); // Важно для корректного потолка
-  minZ := Floor(Z - 0.3);
-  maxZ := Floor(Z + 0.3 - EPS);
+  minX := Floor(X - P_WIDTH + EPS);
+  maxX := Floor(X + P_WIDTH - EPS);
+  minY := Floor(Y + EPS);         // Исключаем блок под ногами при идеальном касании
+  maxY := Floor(Y + P_HEIGHT - EPS);
+  minZ := Floor(Z - P_WIDTH + EPS);
+  maxZ := Floor(Z + P_WIDTH - EPS);
 
   for bx := minX to maxX do
     for by := minY to maxY do
@@ -64,9 +66,16 @@ var
   newX, newY, newZ: Double;
   steps, i: Integer;
   stepDt, moveStep: Double;
+  TargetSpeedX, TargetSpeedZ: Double;
+const
+  AccelFactor = 12.0; // Коэффициент плавности (чем больше, тем резче)
 begin
-  FSpeedX := MoveX * Config.MoveSpeed;
-  FSpeedZ := MoveZ * Config.MoveSpeed;
+  TargetSpeedX := MoveX * Config.MoveSpeed;
+  TargetSpeedZ := MoveZ * Config.MoveSpeed;
+
+  // Плавное ускорение и торможение
+  FSpeedX := FSpeedX + (TargetSpeedX - FSpeedX) * Min(1.0, dt * AccelFactor);
+  FSpeedZ := FSpeedZ + (TargetSpeedZ - FSpeedZ) * Min(1.0, dt * AccelFactor);
 
   steps := Max(1, Ceil(Abs(FSpeedX * dt) / 0.3));
   stepDt := dt / steps;

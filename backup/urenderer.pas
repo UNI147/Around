@@ -8,7 +8,7 @@ TRenderer = class
 public
 procedure DrawTopView(Bitmap: TBitmap; const DestRect: TRect; World: TWorld; Player: TPlayer);
 procedure DrawSideView(Bitmap: TBitmap; const DestRect: TRect; World: TWorld; Player: TPlayer);
-procedure DrawClouds(Bitmap: TBitmap; const DestRect: TRect; Player: TPlayer);
+procedure DrawClouds(Bitmap: TBitmap; const DestRect: TRect; Player: TPlayer; IsSideView: Boolean);
 end;
 implementation
 procedure TRenderer.DrawTopView(Bitmap: TBitmap; const DestRect: TRect; World: TWorld; Player: TPlayer);
@@ -106,7 +106,7 @@ if b <> 0 then
 begin
 blockColor := GetBlockColor(b);
 screenX := centerX + Round((wx - Player.PosX) * BLOCK_SIZE);
-screenY := centerY - Round((wy - Player.PosY) * BLOCK_SIZE);
+screenY := centerY - Round((wy + 1 - Player.PosY) * BLOCK_SIZE);
 if (screenX + BLOCK_SIZE > DestRect.Left) and (screenX < DestRect.Right) and
 (screenY + BLOCK_SIZE > DestRect.Top) and (screenY < DestRect.Bottom) then
 begin
@@ -126,48 +126,45 @@ end;
 procedure TRenderer.DrawClouds(Bitmap: TBitmap; const DestRect: TRect; Player: TPlayer);
 var
   centerX, centerY, cloudY, i: Integer;
-  screenX, screenY, size, alpha: Integer;
+  screenX, screenY, size: Integer;
   seed: Cardinal;
   h: Cardinal;
   parallax: Double;
   worldX: Double;
+  OldClipRect: TRect; // Чтобы облака не перерисовывались на вид сверху
 begin
-  // Параллакс: облака движутся в 3 раза медленнее ландшафта
-  parallax := 0.3;
+  OldClipRect := Bitmap.Canvas.ClipRect;
+  Bitmap.Canvas.ClipRect := DestRect; // Ограничиваем зону отрисовки боковым видом
+
+  parallax := 0.3; // Облака плывут медленнее ландшафта
   centerX := DestRect.Left + (DestRect.Right - DestRect.Left) div 2;
   centerY := DestRect.Top + (DestRect.Bottom - DestRect.Top) div 2;
 
-  // Псевдо-случайные детерминированные облака
   for i := 0 to Config.CloudCount - 1 do
   begin
-    // Каждое облако имеет фиксированную мировую позицию
-    seed := Cardinal(i) * 2654435761; // золотое сечение для хеширования
+    seed := Cardinal(i) * 2654435761;
     h := (seed xor (seed shr 16)) * 2246822519;
-
-    // Мировая X-координата облака
     worldX := (Integer(h and $1FFF) - 2048) * 2.0;
 
-    cloudY := Integer((h shr 16) and $3F) + 45; // высота 45-60 блоков
-    size := 30 + Integer((h shr 24) and $1F);    // размер 30-60 пикс
+    // Генерируем облака на 5..25 блоков ВЫШЕ текущей позиции игрока
+    cloudY := Round(Player.PosY) + 5 + Integer((h shr 16) and $15);
+    size := 30 + Integer((h shr 24) and $1F);
 
-    // Позиция на экране с параллаксом
     screenX := centerX + Round((worldX - Player.PosX * parallax) * BLOCK_SIZE);
-    screenY := centerY - Round((cloudY - Player.PosY * parallax) * BLOCK_SIZE);
+    screenY := centerY - Round((cloudY - Player.PosY) * BLOCK_SIZE);
 
-    // Пропускаем облака за пределами экрана
     if (screenX + size * 2 < DestRect.Left) or (screenX > DestRect.Right) then Continue;
     if (screenY + size < DestRect.Top) or (screenY > DestRect.Bottom) then Continue;
 
-    // Рисуем полупрозрачным белым эллипсом
     Bitmap.Canvas.Brush.Color := $F0F0F0;
     Bitmap.Canvas.Brush.Style := bsSolid;
     Bitmap.Canvas.Pen.Color := $E0E0E0;
+    // Рисуем пушистое облако из двух эллипсов
     Bitmap.Canvas.Ellipse(screenX, screenY, screenX + size * 2, screenY + size);
-
-    // Дополнительный «пуф» для объёма
     Bitmap.Canvas.Ellipse(screenX + size div 2, screenY - size div 3,
                           screenX + size * 2, screenY + size * 2 div 3);
   end;
+  Bitmap.Canvas.ClipRect := OldClipRect;
 end;
 
 end.
