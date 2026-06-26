@@ -33,6 +33,9 @@ var
   CX, CZ, lx, lz, wy: Integer;
   Chunk: TChunk;
 begin
+  // СОХРАНЯЕМ старый клиппинг и УСТАНАВЛИВАЕМ жесткие границы текущего вида
+  OldClipRect := Bitmap.Canvas.ClipRect;
+  Bitmap.Canvas.ClipRect := DestRect;
   halfW := (DestRect.Right - DestRect.Left) div 2;
   halfH := (DestRect.Bottom - DestRect.Top) div 2;
   centerX := DestRect.Left + halfW;
@@ -82,7 +85,7 @@ begin
   Bitmap.Canvas.FillRect(screenX - 3, screenY - 3, screenX + 4, screenY + 4);
 end;
 
-procedure TRenderer.DrawSideView(Bitmap: TBitmap; const DestRect: TRect; World: TWorld; Player: TPlayer; CamX, CamY: Double);
+procedure TRenderer.DrawSideView(Bitmap: TBitmap; const DestRect: TRect; World: TWorld; Player: TPlayer; CamX, CamY, CamZ: Double);
 var
   wx, wy, wz: Integer;
   minWX, maxWX, minWY, maxWY: Integer;

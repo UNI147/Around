@@ -5,7 +5,7 @@ unit uPlayer;
 interface
 
 uses
-  Classes, SysUtils, Math, uConfig, uWorld, uTypes;
+  Classes, SysUtils, Math, uConfig, uWorld;
 
 type
   TPlayer = class

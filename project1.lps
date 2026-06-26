@@ -10,7 +10,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
         <CursorPos X="18" Y="14"/>
-        <UsageCount Value="61"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -22,7 +22,7 @@
         <EditorIndex Value="2"/>
         <TopLine Value="26"/>
         <CursorPos X="70" Y="38"/>
-        <UsageCount Value="61"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -32,7 +32,7 @@
         <EditorIndex Value="3"/>
         <TopLine Value="134"/>
         <CursorPos X="91" Y="145"/>
-        <UsageCount Value="57"/>
+        <UsageCount Value="58"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -41,7 +41,7 @@
         <UnitName Value="uInput"/>
         <EditorIndex Value="4"/>
         <CursorPos X="12"/>
-        <UsageCount Value="57"/>
+        <UsageCount Value="58"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -49,19 +49,19 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="uRenderer"/>
         <EditorIndex Value="5"/>
-        <TopLine Value="77"/>
-        <CursorPos X="132" Y="85"/>
-        <UsageCount Value="57"/>
+        <TopLine Value="20"/>
+        <CursorPos X="22" Y="35"/>
+        <UsageCount Value="58"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="uplayer.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uPlayer"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
-        <CursorPos X="43" Y="8"/>
-        <UsageCount Value="57"/>
+        <TopLine Value="40"/>
+        <CursorPos X="5" Y="162"/>
+        <UsageCount Value="58"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -71,7 +71,7 @@
         <EditorIndex Value="7"/>
         <TopLine Value="223"/>
         <CursorPos X="61" Y="234"/>
-        <UsageCount Value="57"/>
+        <UsageCount Value="58"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -80,7 +80,7 @@
         <UnitName Value="uTypes"/>
         <EditorIndex Value="8"/>
         <CursorPos Y="12"/>
-        <UsageCount Value="57"/>
+        <UsageCount Value="58"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -89,17 +89,18 @@
         <UnitName Value="uResources"/>
         <EditorIndex Value="9"/>
         <CursorPos X="12" Y="7"/>
-        <UsageCount Value="54"/>
+        <UsageCount Value="55"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="uconfig.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uConfig"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="10"/>
-        <TopLine Value="109"/>
-        <CursorPos X="5" Y="132"/>
-        <UsageCount Value="53"/>
+        <TopLine Value="101"/>
+        <CursorPos X="67" Y="102"/>
+        <UsageCount Value="54"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -109,13 +110,13 @@
         <EditorIndex Value="11"/>
         <TopLine Value="145"/>
         <CursorPos X="5" Y="168"/>
-        <UsageCount Value="51"/>
+        <UsageCount Value="52"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="unit1.lfm"/>
         <CursorPos X="20" Y="13"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="31"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="LFM"/>
       </Unit>
@@ -138,22 +139,6 @@
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="ugame.pas"/>
-        <Caret Line="120" Column="5" TopLine="97"/>
-      </Position>
-      <Position>
-        <Filename Value="urenderer.pas"/>
-        <Caret Line="40" Column="16" TopLine="28"/>
-      </Position>
-      <Position>
-        <Filename Value="uworld.pas"/>
-        <Caret Line="169" Column="5" TopLine="146"/>
-      </Position>
-      <Position>
-        <Filename Value="ugame.pas"/>
-        <Caret Line="120" Column="5" TopLine="97"/>
-      </Position>
       <Position>
         <Filename Value="urenderer.pas"/>
         <Caret Line="11" Column="11"/>
@@ -257,6 +242,22 @@
       <Position>
         <Filename Value="ugame.pas"/>
         <Caret Line="174" Column="5" TopLine="151"/>
+      </Position>
+      <Position>
+        <Filename Value="uplayer.pas"/>
+        <Caret Line="8" Column="43"/>
+      </Position>
+      <Position>
+        <Filename Value="urenderer.pas"/>
+        <Caret Line="35" Column="22" TopLine="20"/>
+      </Position>
+      <Position>
+        <Filename Value="uconfig.pas"/>
+        <Caret Line="24" Column="35" TopLine="22"/>
+      </Position>
+      <Position>
+        <Filename Value="uconfig.pas"/>
+        <Caret Line="46" Column="50" TopLine="44"/>
       </Position>
     </JumpHistory>
     <RunParams>

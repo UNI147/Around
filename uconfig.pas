@@ -22,14 +22,14 @@ type
     function GetGravity: Double;
     function GetJumpSpeed: Double;
     function GetMoveSpeed: Double;
-    function GetMoveAccel: Double;
-    function GetMoveFriction: Double;
     function GetCameraSmoothing: Double;
     function GetStartX: Double;
     function GetStartY: Double;
     function GetStartZ: Double;
     function GetTimerInterval: Integer;
     function GetDeltaTime: Double;
+    function GetMoveAccel: Double;
+    function GetMoveFriction: Double;
   public
     constructor Create(const AFileName: string);
     destructor Destroy; override;
@@ -44,14 +44,14 @@ type
     property Gravity: Double read GetGravity;
     property JumpSpeed: Double read GetJumpSpeed;
     property MoveSpeed: Double read GetMoveSpeed;
-    property MoveAccel: Double read GetMoveAccel;
-    property MoveFriction: Double read GetMoveFriction;
     property CameraSmoothing: Double read GetCameraSmoothing;
     property StartX: Double read GetStartX;
     property StartY: Double read GetStartY;
     property StartZ: Double read GetStartZ;
     property TimerInterval: Integer read GetTimerInterval;
     property DeltaTime: Double read GetDeltaTime;
+    property MoveAccel: Double read GetMoveAccel;
+    property MoveFriction: Double read GetMoveFriction;
   end;
 
 var
@@ -101,12 +101,6 @@ begin Result := FIni.ReadFloat('Player', 'JumpSpeed', 350.0); end;
 function TConfig.GetMoveSpeed: Double;
 begin Result := FIni.ReadFloat('Player', 'MoveSpeed', 150.0); end;
 
-function TConfig.GetMoveAccel: Double;
-begin Result := FIni.ReadFloat('Player', 'MoveAccel', 800.0); end;
-
-function TConfig.GetMoveFriction: Double;
-begin Result := FIni.ReadFloat('Player', 'MoveFriction', 10.0); end;
-
 function TConfig.GetCameraSmoothing: Double;
 begin Result := FIni.ReadFloat('Camera', 'Smoothing', 8.0); end;
 
@@ -124,6 +118,16 @@ begin Result := FIni.ReadInteger('Timer', 'Interval', 30); end;
 
 function TConfig.GetDeltaTime: Double;
 begin Result := TimerInterval / 1000.0; end;
+
+function TConfig.GetMoveAccel: Double;
+begin
+  Result := FIni.ReadFloat('Player', 'MoveAccel', 800.0); // Ускорение
+end;
+
+function TConfig.GetMoveFriction: Double;
+begin
+  Result := FIni.ReadFloat('Player', 'MoveFriction', 8.0); // Трение
+end;
 
 initialization
   Config := TConfig.Create(ExtractFilePath(ParamStr(0)) + 'config.ini');
