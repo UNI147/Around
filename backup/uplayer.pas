@@ -61,19 +61,37 @@ end;
 procedure TPlayer.Update(dt: Double; const MoveX, MoveZ: Double; Jump: Boolean);
 var
   newX, newY, newZ: Double;
+  steps, i: Integer;
+  stepDt, moveStep: Double;
 begin
   FSpeedX := MoveX * Config.MoveSpeed;
   FSpeedZ := MoveZ * Config.MoveSpeed;
 
-  // Ось X
-  newX := FPosX + FSpeedX * dt;
-  if not CollidesAt(newX, FPosY, FPosZ) then FPosX := newX;
+  // === Sub-stepping для плавного движения и корректных коллизий ===
+  // Делим движение на подшаги, чтобы не проскакивать сквозь блоки
+  steps := Max(1, Ceil(Abs(FSpeedX * dt) / 0.3)); // шаг не более 0.3 блока
+  stepDt := dt / steps;
 
-  // Ось Z
-  newZ := FPosZ + FSpeedZ * dt;
-  if not CollidesAt(FPosX, FPosY, newZ) then FPosZ := newZ;
+  for i := 1 to steps do
+  begin
+    // Ось X
+    moveStep := FSpeedX * stepDt;
+    newX := FPosX + moveStep;
+    if not CollidesAt(newX, FPosY, FPosZ) then
+      FPosX := newX
+    else
+      FSpeedX := 0; // упираемся в стену — сбрасываем скорость по X
 
-  // Ось Y (Гравитация и Прыжок)
+    // Ось Z (независимо от X — это даёт скольжение вдоль углов)
+    moveStep := FSpeedZ * stepDt;
+    newZ := FPosZ + moveStep;
+    if not CollidesAt(FPosX, FPosY, newZ) then
+      FPosZ := newZ
+    else
+      FSpeedZ := 0;
+  end;
+
+  // === Ось Y: гравитация и прыжок (без sub-stepping — достаточно точно) ===
   if Jump and FOnGround then
   begin
     FVelocityY := Config.JumpSpeed;
@@ -90,7 +108,13 @@ begin
   end
   else
   begin
-    if FVelocityY < 0 then FOnGround := True; // Ударились головой или приземлились
+    // При ударе о землю/потолок обнуляем вертикальную скорость
+    if FVelocityY < 0 then
+    begin
+      // Приземление — «прилипаем» к поверхности блока
+      FPosY := Floor(FPosY) + 1.0; // ноги точно на верхней грани блока
+      FOnGround := True;
+    end;
     FVelocityY := 0;
   end;
 

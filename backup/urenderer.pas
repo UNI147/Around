@@ -130,7 +130,7 @@ var
   seed: Cardinal;
   h: Cardinal;
   parallax: Double;
-  worldX: Double; // <--- 1. ОБЪЯВЛЯЕМ ПЕРЕМЕННУЮ ЗДЕСЬ
+  worldX: Double;
 begin
   // Параллакс: облака движутся в 3 раза медленнее ландшафта
   parallax := 0.3;
@@ -145,7 +145,6 @@ begin
     h := (seed xor (seed shr 16)) * 2246822519;
 
     // Мировая X-координата облака
-    // <--- 2. УБИРАЕМ СЛОВА "var" И "Double:", ОСТАВЛЯЕМ ТОЛЬКО ПРИСВАИВАНИЕ
     worldX := (Integer(h and $1FFF) - 2048) * 2.0;
 
     cloudY := Integer((h shr 16) and $3F) + 45; // высота 45-60 блоков

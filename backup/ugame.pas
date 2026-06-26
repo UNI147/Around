@@ -37,7 +37,7 @@ FWorld.EnsureChunkExists(0, 0);
 spawnY := CHUNK_SIZE_Y - 1;
 for wy := CHUNK_SIZE_Y - 1 downto 0 do
 begin
-if FWorld.IsBlockSolid(0, wy, 0) then begin spawnY := wy + 2; Break; end;
+if FWorld.IsBlockSolid(0, wy, 0) then begin spawnY := wy + 1; Break; end;
 end;
 FPlayer := TPlayer.Create(FWorld);
 FPlayer.SetPosition(0, spawnY, 0);

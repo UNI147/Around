@@ -99,13 +99,12 @@ var
   biomeNoise: Double;
   depth: Integer;
   b: TBlockID;
-  // === ДОБАВЛЕНЫ НЕДОСТАЮЩИЕ ПЕРЕМЕННЫЕ ДЛЯ ДЕРЕВЬЕВ И КАМНЕЙ ===
   wy, treeHeight, ty, topY: Integer;
   dy, dx, dz, tx, tz: Integer;
 begin
   Chunk := TChunk.Create(CX, CZ);
 
-  // Базовая генерация рельефа
+  // === Базовая генерация рельефа ===
   for lx := 0 to CHUNK_SIZE_X - 1 do
     for lz := 0 to CHUNK_SIZE_Z - 1 do
     begin
@@ -120,8 +119,8 @@ begin
       begin
         density := baseHeight - ly;
         density := density + FBm3D(wx * 0.03, ly * 0.03, wz * 0.03, 3, 0.5, 2.0) * 5.0;
-        caveNoise := FBm3D(wx * 0.06, ly * 0.06, wz * 0.06, 2, 0.5, 2.0);
 
+        caveNoise := FBm3D(wx * 0.06, ly * 0.06, wz * 0.06, 2, 0.5, 2.0);
         if caveNoise > 0.4 then
           density := density - (caveNoise - 0.4) * 15.0;
 
@@ -175,18 +174,29 @@ begin
     begin
       wx := CX * CHUNK_SIZE_X + lx;
       wz := CZ * CHUNK_SIZE_Z + lz;
-
       wy := Chunk.HeightMap[lx, lz];
+
       if (wy < 1) or (wy >= CHUNK_SIZE_Y - 8) then Continue;
 
       b := Chunk.Blocks[lx, wy, lz];
 
       // Булыжники
-      if (b = Ord(btStone)) and (DeterministicRand(wx, wz, 1, 100) < 3) then
+      if (DeterministicRand(wx, wz, 1, 100) < 3) and
+         (b in [Ord(btGrass), Ord(btDirt), Ord(btSand), Ord(btStone)]) then
       begin
-        Chunk.Blocks[lx, wy + 1, lz] := Ord(btStone);
-        if Chunk.HeightMap[lx, lz] < wy + 1 then
-          Chunk.HeightMap[lx, lz] := wy + 1;
+        if (wy + 1 < CHUNK_SIZE_Y) and (Chunk.Blocks[lx, wy + 1, lz] = Ord(btAir)) then
+        begin
+          Chunk.Blocks[lx, wy + 1, lz] := Ord(btStone);
+          if Chunk.HeightMap[lx, lz] < wy + 1 then Chunk.HeightMap[lx, lz] := wy + 1;
+
+          // Шанс второго блока (валун)
+          if (DeterministicRand(wx, wz, 4, 100) < 30) and (wy + 2 < CHUNK_SIZE_Y) and
+             (Chunk.Blocks[lx, wy + 2, lz] = Ord(btAir)) then
+          begin
+            Chunk.Blocks[lx, wy + 2, lz] := Ord(btStone);
+            if Chunk.HeightMap[lx, lz] < wy + 2 then Chunk.HeightMap[lx, lz] := wy + 2;
+          end;
+        end;
       end;
 
       // Деревья
@@ -196,8 +206,14 @@ begin
 
         treeHeight := 4 + DeterministicRand(wx, wz, 3, 2);
         for ty := 1 to treeHeight do
+        begin
           if (wy + ty < CHUNK_SIZE_Y) then
+          begin
             Chunk.Blocks[lx, wy + ty, lz] := Ord(btWood);
+            if Chunk.HeightMap[lx, lz] < wy + ty then
+              Chunk.HeightMap[lx, lz] := wy + ty;
+          end;
+        end;
 
         topY := wy + treeHeight;
         for dy := -1 to 1 do
@@ -205,23 +221,21 @@ begin
             for dz := -2 to 2 do
             begin
               if (Abs(dx) = 2) and (Abs(dz) = 2) then Continue;
-              tx := lx + dx;
-              tz := lz + dz;
-              ty := topY + dy;
+              tx := lx + dx; tz := lz + dz; ty := topY + dy;
 
-              if (tx >= 0) and (tx < CHUNK_SIZE_X) and
-                 (tz >= 0) and (tz < CHUNK_SIZE_Z) and
+              if (tx >= 0) and (tx < CHUNK_SIZE_X) and (tz >= 0) and (tz < CHUNK_SIZE_Z) and
                  (ty >= 0) and (ty < CHUNK_SIZE_Y) then
               begin
                 if Chunk.Blocks[tx, ty, tz] = Ord(btAir) then
+                begin
                   Chunk.Blocks[tx, ty, tz] := Ord(btLeaves);
+                  if Chunk.HeightMap[tx, tz] < ty then
+                    Chunk.HeightMap[tx, tz] := ty;
+                end;
               end;
             end;
-
-        if Chunk.HeightMap[lx, lz] < topY + 1 then
-          Chunk.HeightMap[lx, lz] := topY + 1;
       end;
-    end;
+    end; // Конец цикла генерации деревьев и камней
 
   FChunks.Add(Chunk);
   FChunkMap.Add(ChunkKey(CX, CZ), Chunk);

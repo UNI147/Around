@@ -41,14 +41,15 @@ function TPlayer.CollidesAt(X, Y, Z: Double): Boolean;
 var
   minX, maxX, minY, maxY, minZ, maxZ: Integer;
   bx, by, bz: Integer;
+const
+  EPS = 0.001;
 begin
-  // Хитбокс игрока: ширина 0.6, высота 1.8
   minX := Floor(X - 0.3);
-  maxX := Floor(X + 0.3);
+  maxX := Floor(X + 0.3 - EPS); // Исключаем микро-пересечения на границах
   minY := Floor(Y);
-  maxY := Floor(Y + 1.8);
+  maxY := Floor(Y + 1.8 - EPS); // Важно для корректного потолка
   minZ := Floor(Z - 0.3);
-  maxZ := Floor(Z + 0.3);
+  maxZ := Floor(Z + 0.3 - EPS);
 
   for bx := minX to maxX do
     for by := minY to maxY do
@@ -67,63 +68,64 @@ begin
   FSpeedX := MoveX * Config.MoveSpeed;
   FSpeedZ := MoveZ * Config.MoveSpeed;
 
-  // === Sub-stepping для плавного движения и корректных коллизий ===
-  // Делим движение на подшаги, чтобы не проскакивать сквозь блоки
-  steps := Max(1, Ceil(Abs(FSpeedX * dt) / 0.3)); // шаг не более 0.3 блока
+  steps := Max(1, Ceil(Abs(FSpeedX * dt) / 0.3));
   stepDt := dt / steps;
 
   for i := 1 to steps do
   begin
-    // Ось X
     moveStep := FSpeedX * stepDt;
     newX := FPosX + moveStep;
-    if not CollidesAt(newX, FPosY, FPosZ) then
-      FPosX := newX
-    else
-      FSpeedX := 0; // упираемся в стену — сбрасываем скорость по X
+    if not CollidesAt(newX, FPosY, FPosZ) then FPosX := newX else FSpeedX := 0;
 
-    // Ось Z (независимо от X — это даёт скольжение вдоль углов)
     moveStep := FSpeedZ * stepDt;
     newZ := FPosZ + moveStep;
-    if not CollidesAt(FPosX, FPosY, newZ) then
-      FPosZ := newZ
-    else
-      FSpeedZ := 0;
+    if not CollidesAt(FPosX, FPosY, newZ) then FPosZ := newZ else FSpeedZ := 0;
   end;
 
-  // === Ось Y: гравитация и прыжок (без sub-stepping — достаточно точно) ===
   if Jump and FOnGround then
   begin
     FVelocityY := Config.JumpSpeed;
     FOnGround := False;
   end;
 
-  FVelocityY := FVelocityY - Config.Gravity * dt;
-  newY := FPosY + FVelocityY * dt;
-
-  if not CollidesAt(FPosX, newY, FPosZ) then
+  // Жесткая проверка опоры под ногами без применения гравитации
+  if FOnGround then
   begin
-    FPosY := newY;
-    FOnGround := False;
-  end
-  else
-  begin
-    // При ударе о землю/потолок обнуляем вертикальную скорость
-    if FVelocityY < 0 then
+    if CollidesAt(FPosX, FPosY - 0.05, FPosZ) then
     begin
-      // Приземление — «прилипаем» к поверхности блока
-      FPosY := Floor(FPosY) + 1.0; // ноги точно на верхней грани блока
-      FOnGround := True;
-    end;
-    FVelocityY := 0;
+      FVelocityY := 0;
+      // Не трогаем FPosY, чтобы не телепортировать игрока вверх!
+    end
+    else
+      FOnGround := False; // Сошли с уступа
   end;
 
-  // Защита от падения в бездну
-  if FPosY < -10 then
+  // Физика падения и прыжка
+  if not FOnGround then
   begin
-    FPosY := 40;
-    FVelocityY := 0;
+    FVelocityY := FVelocityY - Config.Gravity * dt;
+    newY := FPosY + FVelocityY * dt;
+
+    if not CollidesAt(FPosX, newY, FPosZ) then
+    begin
+      FPosY := newY;
+    end
+    else
+    begin
+      if FVelocityY < 0 then
+      begin
+        FPosY := Floor(newY) + 1.0; // Прилипаем к поверхности
+        FOnGround := True;
+      end
+      else if FVelocityY > 0 then
+      begin
+        FPosY := Floor(newY + 1.8) - 1.8; // Удар головой о потолок
+      end;
+      FVelocityY := 0;
+    end;
   end;
+
+  if FPosY < -10 then begin FPosY := 40; FVelocityY := 0; end;
 end;
 
 procedure TPlayer.SetPosition(X, Y, Z: Double);

@@ -102,12 +102,12 @@ end;
 
 function TConfig.GetGravity: Double;
 begin
-  Result := FIni.ReadFloat('Player', 'Gravity', 600.0);
+  Result := FIni.ReadFloat('Player', 'Gravity', 20.0);
 end;
 
 function TConfig.GetJumpSpeed: Double;
 begin
-  Result := FIni.ReadFloat('Player', 'JumpSpeed', 350.0);
+  Result := FIni.ReadFloat('Player', 'JumpSpeed', 9.0);
 end;
 
 function TConfig.GetMoveSpeed: Double;

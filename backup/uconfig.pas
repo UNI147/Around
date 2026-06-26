@@ -80,12 +80,7 @@ begin
   Result := FIni.ReadBool('Display', 'FullScreen', True);
 end;
 
-function TConfig.GetFontName: string;
-begin
-  Result := FIni.ReadString('Display', 'FontName', 'GothicRus');
-end;
-
-function TConfig.GetFontFile: string;
+function TConfig.GetFontFileName: string;
 begin
   Result := FIni.ReadString('Display', 'FontFile', 'GothicRus.ttf');
 end;
@@ -142,7 +137,7 @@ end;
 
 function TConfig.GetDeltaTime: Double;
 begin
-  Result := FIni.ReadFloat('Timer', 'DeltaTime', 0.03);
+  Result := TimerInterval / 1000.0;
 end;
 
 initialization
