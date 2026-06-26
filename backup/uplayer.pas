@@ -5,18 +5,15 @@ unit uPlayer;
 interface
 
 uses
-  Classes, SysUtils, Math, uConfig, uWorld;
+  Classes, SysUtils, Math, uConfig, uWorld, uTypes;
 
 type
   TPlayer = class
   private
     FWorld: TWorld;
     FPosX, FPosY, FPosZ: Double;
-    FVelocityY: Double;
-    FSpeedX, FSpeedZ: Double;
+    FVelocityX, FVelocityY, FVelocityZ: Double;
     FOnGround: Boolean;
-    FStepTargetY: Double;    // Целевая высота для шага
-    FIsStepping: Boolean;    // Флаг процесса зашагивания
     function CollidesAt(X, Y, Z: Double): Boolean;
   public
     constructor Create(AWorld: TWorld);
@@ -33,9 +30,8 @@ implementation
 constructor TPlayer.Create(AWorld: TWorld);
 begin
   FWorld := AWorld;
-  FPosX := 0; FPosY := 40; FPosZ := 0; // Стартуем повыше, чтобы упасть на землю
-  FVelocityY := 0;
-  FSpeedX := 0; FSpeedZ := 0;
+  FPosX := 0; FPosY := 40; FPosZ := 0;
+  FVelocityX := 0; FVelocityY := 0; FVelocityZ := 0;
   FOnGround := False;
 end;
 
@@ -43,17 +39,10 @@ function TPlayer.CollidesAt(X, Y, Z: Double): Boolean;
 var
   minX, maxX, minY, maxY, minZ, maxZ: Integer;
   bx, by, bz: Integer;
-const
-  EPS = 0.001;
-  P_WIDTH = 0.3;
-  P_HEIGHT = 1.8;
 begin
-  minX := Floor(X - P_WIDTH + EPS);
-  maxX := Floor(X + P_WIDTH - EPS);
-  minY := Floor(Y + EPS);         // Исключаем блок под ногами при идеальном касании
-  maxY := Floor(Y + P_HEIGHT - EPS);
-  minZ := Floor(Z - P_WIDTH + EPS);
-  maxZ := Floor(Z + P_WIDTH - EPS);
+  minX := Floor(X - 0.3); maxX := Floor(X + 0.3);
+  minY := Floor(Y); maxY := Floor(Y + 1.8);
+  minZ := Floor(Z - 0.3); maxZ := Floor(Z + 0.3);
 
   for bx := minX to maxX do
     for by := minY to maxY do
@@ -61,84 +50,80 @@ begin
         if FWorld.IsBlockSolid(bx, by, bz) then
           Exit(True);
   Result := False;
-  FIsStepping := False;
-  FStepTargetY := 0;
 end;
 
 procedure TPlayer.Update(dt: Double; const MoveX, MoveZ: Double; Jump: Boolean);
 var
   newX, newY, newZ: Double;
-  steps, i: Integer;
-  stepDt, moveStep: Double;
-  TargetSpeedX, TargetSpeedZ: Double;
-const
-  AccelFactor = 12.0; // Коэффициент плавности (чем больше, тем резче)
+  targetSpeedX, targetSpeedZ: Double;
+  accelX, accelZ: Double;
+  frictionFactor: Double;
 begin
-  TargetSpeedX := MoveX * Config.MoveSpeed;
-  TargetSpeedZ := MoveZ * Config.MoveSpeed;
+  targetSpeedX := MoveX * Config.MoveSpeed;
+  targetSpeedZ := MoveZ * Config.MoveSpeed;
 
-  // Плавное ускорение и торможение
-  FSpeedX := FSpeedX + (TargetSpeedX - FSpeedX) * Min(1.0, dt * AccelFactor);
-  FSpeedZ := FSpeedZ + (TargetSpeedZ - FSpeedZ) * Min(1.0, dt * AccelFactor);
-
-  steps := Max(1, Ceil(Abs(FSpeedX * dt) / 0.3));
-  stepDt := dt / steps;
-
-  for i := 1 to steps do
+  // Плавный разгон и трение по X
+  if MoveX <> 0 then
   begin
-    moveStep := FSpeedX * stepDt;
-    newX := FPosX + moveStep;
-    if not CollidesAt(newX, FPosY, FPosZ) then FPosX := newX else FSpeedX := 0;
-
-    moveStep := FSpeedZ * stepDt;
-    newZ := FPosZ + moveStep;
-    if not CollidesAt(FPosX, FPosY, newZ) then FPosZ := newZ else FSpeedZ := 0;
+    accelX := (targetSpeedX - FVelocityX) * Config.MoveAccel * dt / Config.MoveSpeed;
+    FVelocityX := FVelocityX + accelX;
+  end
+  else
+  begin
+    frictionFactor := Exp(-Config.MoveFriction * dt);
+    FVelocityX := FVelocityX * frictionFactor;
+    if Abs(FVelocityX) < 0.1 then FVelocityX := 0;
   end;
 
+  // Плавный разгон и трение по Z
+  if MoveZ <> 0 then
+  begin
+    accelZ := (targetSpeedZ - FVelocityZ) * Config.MoveAccel * dt / Config.MoveSpeed;
+    FVelocityZ := FVelocityZ + accelZ;
+  end
+  else
+  begin
+    frictionFactor := Exp(-Config.MoveFriction * dt);
+    FVelocityZ := FVelocityZ * frictionFactor;
+    if Abs(FVelocityZ) < 0.1 then FVelocityZ := 0;
+  end;
+
+  // Ось X
+  newX := FPosX + FVelocityX * dt;
+  if not CollidesAt(newX, FPosY, FPosZ) then FPosX := newX
+  else FVelocityX := 0;
+
+  // Ось Z
+  newZ := FPosZ + FVelocityZ * dt;
+  if not CollidesAt(FPosX, FPosY, newZ) then FPosZ := newZ
+  else FVelocityZ := 0;
+
+  // Ось Y (Гравитация и Прыжок)
   if Jump and FOnGround then
   begin
     FVelocityY := Config.JumpSpeed;
     FOnGround := False;
   end;
 
-  // Жесткая проверка опоры под ногами без применения гравитации
-  if FOnGround then
+  FVelocityY := FVelocityY - Config.Gravity * dt;
+  newY := FPosY + FVelocityY * dt;
+
+  if not CollidesAt(FPosX, newY, FPosZ) then
   begin
-    if CollidesAt(FPosX, FPosY - 0.05, FPosZ) then
-    begin
-      FVelocityY := 0;
-      // Не трогаем FPosY, чтобы не телепортировать игрока вверх!
-    end
-    else
-      FOnGround := False; // Сошли с уступа
+    FPosY := newY;
+    FOnGround := False;
+  end
+  else
+  begin
+    if FVelocityY < 0 then FOnGround := True;
+    FVelocityY := 0;
   end;
 
-  // Физика падения и прыжка
-  if not FOnGround then
+  if FPosY < -10 then
   begin
-    FVelocityY := FVelocityY - Config.Gravity * dt;
-    newY := FPosY + FVelocityY * dt;
-
-    if not CollidesAt(FPosX, newY, FPosZ) then
-    begin
-      FPosY := newY;
-    end
-    else
-    begin
-      if FVelocityY < 0 then
-      begin
-        FPosY := Floor(newY) + 1.0; // Прилипаем к поверхности
-        FOnGround := True;
-      end
-      else if FVelocityY > 0 then
-      begin
-        FPosY := Floor(newY + 1.8) - 1.8; // Удар головой о потолок
-      end;
-      FVelocityY := 0;
-    end;
+    FPosY := 40;
+    FVelocityY := 0;
   end;
-
-  if FPosY < -10 then begin FPosY := 40; FVelocityY := 0; end;
 end;
 
 procedure TPlayer.SetPosition(X, Y, Z: Double);
