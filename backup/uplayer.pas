@@ -15,6 +15,8 @@ type
     FVelocityY: Double;
     FSpeedX, FSpeedZ: Double;
     FOnGround: Boolean;
+    FStepTargetY: Double;    // Целевая высота для шага
+    FIsStepping: Boolean;    // Флаг процесса зашагивания
     function CollidesAt(X, Y, Z: Double): Boolean;
   public
     constructor Create(AWorld: TWorld);
@@ -59,6 +61,8 @@ begin
         if FWorld.IsBlockSolid(bx, by, bz) then
           Exit(True);
   Result := False;
+  FIsStepping := False;
+  FStepTargetY := 0;
 end;
 
 procedure TPlayer.Update(dt: Double; const MoveX, MoveZ: Double; Jump: Boolean);
@@ -66,9 +70,16 @@ var
   newX, newY, newZ: Double;
   steps, i: Integer;
   stepDt, moveStep: Double;
+  TargetSpeedX, TargetSpeedZ: Double;
+const
+  AccelFactor = 12.0; // Коэффициент плавности (чем больше, тем резче)
 begin
-  FSpeedX := MoveX * Config.MoveSpeed;
-  FSpeedZ := MoveZ * Config.MoveSpeed;
+  TargetSpeedX := MoveX * Config.MoveSpeed;
+  TargetSpeedZ := MoveZ * Config.MoveSpeed;
+
+  // Плавное ускорение и торможение
+  FSpeedX := FSpeedX + (TargetSpeedX - FSpeedX) * Min(1.0, dt * AccelFactor);
+  FSpeedZ := FSpeedZ + (TargetSpeedZ - FSpeedZ) * Min(1.0, dt * AccelFactor);
 
   steps := Max(1, Ceil(Abs(FSpeedX * dt) / 0.3));
   stepDt := dt / steps;

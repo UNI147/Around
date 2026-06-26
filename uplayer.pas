@@ -15,6 +15,8 @@ type
     FVelocityY: Double;
     FSpeedX, FSpeedZ: Double;
     FOnGround: Boolean;
+    FStepTargetY: Double;    // Целевая высота для шага
+    FIsStepping: Boolean;    // Флаг процесса зашагивания
     function CollidesAt(X, Y, Z: Double): Boolean;
   public
     constructor Create(AWorld: TWorld);
@@ -59,6 +61,8 @@ begin
         if FWorld.IsBlockSolid(bx, by, bz) then
           Exit(True);
   Result := False;
+  FIsStepping := False;
+  FStepTargetY := 0;
 end;
 
 procedure TPlayer.Update(dt: Double; const MoveX, MoveZ: Double; Jump: Boolean);
@@ -68,69 +72,99 @@ var
   stepDt, moveStep: Double;
   TargetSpeedX, TargetSpeedZ: Double;
 const
-  AccelFactor = 12.0; // Коэффициент плавности (чем больше, тем резче)
+  STEP_HEIGHT = 1.0; // Высота автоматического зашагивания
 begin
   TargetSpeedX := MoveX * Config.MoveSpeed;
   TargetSpeedZ := MoveZ * Config.MoveSpeed;
 
-  // Плавное ускорение и торможение
-  FSpeedX := FSpeedX + (TargetSpeedX - FSpeedX) * Min(1.0, dt * AccelFactor);
-  FSpeedZ := FSpeedZ + (TargetSpeedZ - FSpeedZ) * Min(1.0, dt * AccelFactor);
+  // Плавное физически корректное ускорение и торможение (инерция)
+  if Abs(MoveX) > 0 then
+    FSpeedX := TargetSpeedX + (FSpeedX - TargetSpeedX) * Exp(-dt * Config.MoveAccel)
+  else
+    FSpeedX := FSpeedX * Exp(-dt * Config.MoveFriction);
+
+  if Abs(MoveZ) > 0 then
+    FSpeedZ := TargetSpeedZ + (FSpeedZ - TargetSpeedZ) * Exp(-dt * Config.MoveAccel)
+  else
+    FSpeedZ := FSpeedZ * Exp(-dt * Config.MoveFriction);
 
   steps := Max(1, Ceil(Abs(FSpeedX * dt) / 0.3));
   stepDt := dt / steps;
 
   for i := 1 to steps do
   begin
+    // Обработка X
     moveStep := FSpeedX * stepDt;
     newX := FPosX + moveStep;
-    if not CollidesAt(newX, FPosY, FPosZ) then FPosX := newX else FSpeedX := 0;
+    if not CollidesAt(newX, FPosY, FPosZ) then
+      FPosX := newX
+    else if FOnGround and (not FIsStepping) and (not CollidesAt(newX, FPosY + STEP_HEIGHT, FPosZ)) then
+    begin
+      // Пространство над препятствием свободно - начинаем зашагивать
+      FIsStepping := True;
+      FStepTargetY := FPosY + STEP_HEIGHT;
+      FPosX := newX; // Продолжаем движение вперед
+    end
+    else FSpeedX := 0;
 
+    // Обработка Z
     moveStep := FSpeedZ * stepDt;
     newZ := FPosZ + moveStep;
-    if not CollidesAt(FPosX, FPosY, newZ) then FPosZ := newZ else FSpeedZ := 0;
+    if not CollidesAt(FPosX, FPosY, newZ) then
+      FPosZ := newZ
+    else if FOnGround and (not FIsStepping) and (not CollidesAt(FPosX, FPosY + STEP_HEIGHT, newZ)) then
+    begin
+      FIsStepping := True;
+      FStepTargetY := FPosY + STEP_HEIGHT;
+      FPosZ := newZ;
+    end
+    else FSpeedZ := 0;
   end;
 
-  if Jump and FOnGround then
+  // Прыжок (игнорируем, если сейчас зашагиваем)
+  if Jump and FOnGround and (not FIsStepping) then
   begin
     FVelocityY := Config.JumpSpeed;
     FOnGround := False;
   end;
 
-  // Жесткая проверка опоры под ногами без применения гравитации
-  if FOnGround then
+  // Проверка опоры под ногами
+  if FOnGround and (not FIsStepping) then
   begin
     if CollidesAt(FPosX, FPosY - 0.05, FPosZ) then
-    begin
-      FVelocityY := 0;
-      // Не трогаем FPosY, чтобы не телепортировать игрока вверх!
-    end
+      FVelocityY := 0
     else
-      FOnGround := False; // Сошли с уступа
+      FOnGround := False;
   end;
 
-  // Физика падения и прыжка
-  if not FOnGround then
+  // Гравитация
+  if (not FOnGround) and (not FIsStepping) then
   begin
     FVelocityY := FVelocityY - Config.Gravity * dt;
     newY := FPosY + FVelocityY * dt;
+    if not CollidesAt(FPosX, newY, FPosZ) then FPosY := newY
+    else begin
+      if FVelocityY < 0 then begin FPosY := Floor(newY) + 1.0; FOnGround := True; end
+      else FPosY := Floor(newY + 1.8) - 1.8;
+      FVelocityY := 0;
+    end;
+  end;
 
-    if not CollidesAt(FPosX, newY, FPosZ) then
+  // Анимация зашагивания
+  if FIsStepping then
+  begin
+    FPosY := FPosY + (FStepTargetY - FPosY) * Min(1.0, dt * 12.0);
+    if Abs(FPosY - FStepTargetY) < 0.05 then
     begin
-      FPosY := newY;
+      FPosY := FStepTargetY;
+      FIsStepping := False;
+      FOnGround := True;
+      FVelocityY := 0;
     end
     else
     begin
-      if FVelocityY < 0 then
-      begin
-        FPosY := Floor(newY) + 1.0; // Прилипаем к поверхности
-        FOnGround := True;
-      end
-      else if FVelocityY > 0 then
-      begin
-        FPosY := Floor(newY + 1.8) - 1.8; // Удар головой о потолок
-      end;
       FVelocityY := 0;
+      FOnGround := True; // Во время шага не падаем
     end;
   end;
 

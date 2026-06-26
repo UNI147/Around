@@ -27,6 +27,8 @@ type
     function GetStartZ: Double;
     function GetTimerInterval: Integer;
     function GetDeltaTime: Double;
+    function GetMoveAccel: Double;
+    function GetMoveFriction: Double;
   public
     constructor Create(const AFileName: string);
     destructor Destroy; override;
@@ -46,6 +48,8 @@ type
     property StartZ: Double read GetStartZ;
     property TimerInterval: Integer read GetTimerInterval;
     property DeltaTime: Double read GetDeltaTime;
+    property MoveAccel: Double read GetMoveAccel;
+    property MoveFriction: Double read GetMoveFriction;
   end;
 
 var
@@ -102,12 +106,12 @@ end;
 
 function TConfig.GetGravity: Double;
 begin
-  Result := FIni.ReadFloat('Player', 'Gravity', 600.0);
+  Result := FIni.ReadFloat('Player', 'Gravity', 20.0);
 end;
 
 function TConfig.GetJumpSpeed: Double;
 begin
-  Result := FIni.ReadFloat('Player', 'JumpSpeed', 350.0);
+  Result := FIni.ReadFloat('Player', 'JumpSpeed', 9.0);
 end;
 
 function TConfig.GetMoveSpeed: Double;

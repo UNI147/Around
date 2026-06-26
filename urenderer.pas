@@ -128,14 +128,15 @@ var
   centerX, centerY, i: Integer;
   screenX, screenY, size: Integer;
   seed, h: Cardinal;
-  parallax: Double;
-  offsetX, offsetY: Double;
+  baseX, baseY, relX, relZ, shiftX, shiftZ: Double;
   OldClipRect: TRect;
+const
+  parallaxFactor = 0.3; // Скорость движения облаков относительно игрока
+  REPEAT_DIST = 170.0;  // Расстояние зацикливания (тайлинг)
 begin
   OldClipRect := Bitmap.Canvas.ClipRect;
   Bitmap.Canvas.ClipRect := DestRect;
 
-  parallax := 0.3;
   centerX := DestRect.Left + (DestRect.Right - DestRect.Left) div 2;
   centerY := DestRect.Top + (DestRect.Bottom - DestRect.Top) div 2;
 
@@ -144,25 +145,38 @@ begin
     seed := Cardinal(i) * 2654435761;
     h := (seed xor (seed shr 16)) * 2246822519;
 
-    // Генерируем облака локально вокруг игрока (от -80 до +80 блоков)
-    offsetX := (Integer(h and $1FFF) - 4096) * 0.02;
-    offsetY := (Integer((h shr 16) and $FFF) - 2048) * 0.02;
-
+    // Базовые координаты облака в мире
+    baseX := (Integer(h and $1FFF) - 4096) * 0.02;
+    baseY := (Integer((h shr 16) and $FFF) - 2048) * 0.02;
     size := 30 + Integer((h shr 24) and $1F);
 
-    screenX := centerX + Round(offsetX * BLOCK_SIZE);
+    // Смещение мира с учетом параллакса
+    shiftX := Player.PosX * parallaxFactor;
+    shiftZ := Player.PosZ * parallaxFactor;
+
+    // Относительные координаты с бесшовным зацикливанием
+    relX := baseX - shiftX;
+    relX := relX - REPEAT_DIST * Floor(relX / REPEAT_DIST + 0.5);
 
     if IsSideView then
-      // В боковом виде облака плывут высоко над головой
-      screenY := centerY - Round((15 + offsetY * 5) * BLOCK_SIZE)
+    begin
+      screenX := centerX + Round(relX * BLOCK_SIZE);
+      screenY := centerY - Round((15 + baseY * 5) * BLOCK_SIZE); // Вариативность высоты
+    end
     else
-      // В виде сверху облака просто разбросаны по небу
-      screenY := centerY + Round(offsetY * BLOCK_SIZE);
+    begin
+      relZ := baseY - shiftZ;
+      relZ := relZ - REPEAT_DIST * Floor(relZ / REPEAT_DIST + 0.5);
 
-    // Отсечение невидимых облаков
+      screenX := centerX + Round(relX * BLOCK_SIZE);
+      screenY := centerY + Round(relZ * BLOCK_SIZE);
+    end;
+
+    // Отсечение невидимых
     if (screenX + size * 2 < DestRect.Left) or (screenX > DestRect.Right) then Continue;
     if (screenY + size < DestRect.Top) or (screenY > DestRect.Bottom) then Continue;
 
+    // Отрисовка
     Bitmap.Canvas.Brush.Color := $F0F0F0;
     Bitmap.Canvas.Brush.Style := bsSolid;
     Bitmap.Canvas.Pen.Color := $E0E0E0;
